@@ -1,0 +1,156 @@
+/* ============================================================
+   Page theme — change these variables to restyle the page.
+   (Chart colors and sizes are in src/config.js.)
+   ============================================================ */
+:root {
+  --page-background: #f6f7f9;
+  --card-background: #ffffff;
+  --text-color: #202a35;
+  --muted-text-color: #596573;
+  --border-color: #dde2e7;
+  --accent-color: #9e0142;
+  --font-family: Arial, Helvetica, sans-serif;
+
+  color-scheme: light;
+  font-family: var(--font-family);
+  color: var(--text-color);
+  background: var(--page-background);
+}
+
+* { box-sizing: border-box; }
+body { margin: 0; }
+
+/* ---------- Page layout ---------- */
+main {
+  max-width: 1400px;
+  margin: 0 auto;
+  padding: 36px 32px 24px;
+}
+
+h1 { font-size: 32px; margin: 6px 0 8px; }
+h2 { font-size: 20px; margin: 4px 0 0; }
+p { line-height: 1.5; }
+
+.eyebrow {
+  margin: 0;
+  font-size: 11px;
+  font-weight: bold;
+  letter-spacing: 1.4px;
+  text-transform: uppercase;
+  color: var(--muted-text-color);
+}
+
+.intro { margin: 0 0 24px; color: var(--muted-text-color); }
+
+/* ---------- Controls ---------- */
+.toolbar {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  margin-bottom: 20px;
+}
+
+fieldset {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 20px;
+  padding: 10px 16px 12px;
+  border: 1px solid var(--border-color);
+  border-radius: 6px;
+  background: var(--card-background);
+  font-size: 14px;
+}
+
+fieldset legend { padding: 0 4px; font-size: 12px; color: var(--muted-text-color); }
+fieldset label { cursor: pointer; }
+input[type="radio"] { accent-color: var(--accent-color); }
+
+.select-control { font-size: 13px; color: var(--muted-text-color); }
+select {
+  margin-left: 6px;
+  padding: 5px 8px;
+  border: 1px solid var(--border-color);
+  border-radius: 4px;
+  background: var(--card-background);
+  font-size: 13px;
+}
+
+.data-summary { margin: 0; font-size: 12px; color: var(--muted-text-color); }
+
+/* ---------- Chart cards ---------- */
+.chart-card {
+  margin-bottom: 24px;
+  padding: 22px 24px;
+  border: 1px solid var(--border-color);
+  border-radius: 8px;
+  background: var(--card-background);
+}
+
+.chart-heading {
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: 16px;
+}
+
+.chart-description { margin: 8px 0 14px; font-size: 13px; color: var(--muted-text-color); }
+.key-max { color: #2ca25f; font-weight: bold; }
+.key-min { color: #5aa9c9; font-weight: bold; }
+
+/* Charts keep a readable minimum width and scroll sideways on small screens. */
+.chart-scroll { overflow-x: auto; }
+
+/* ---------- SVG chart elements ---------- */
+svg { display: block; width: 100%; min-width: 900px; height: auto; }
+svg text { font-family: var(--font-family); font-size: 11px; fill: var(--text-color); }
+
+.axis-line { fill: none; stroke: #222; stroke-width: 1; shape-rendering: crispEdges; }
+
+.cell { cursor: pointer; }
+.cell:focus { outline: none; }
+.cell:hover .cell-background,
+.cell:focus .cell-background { stroke: #172838; stroke-width: 2; }
+
+.daily-line {
+  fill: none;
+  stroke-width: 1.7;
+  stroke-linejoin: round;
+  stroke-linecap: round;
+  pointer-events: none;
+}
+
+.legend-title { font-weight: bold; }
+.legend-line { stroke-width: 3; }
+
+/* ---------- Tooltip ---------- */
+.tooltip {
+  position: fixed;
+  z-index: 10;
+  max-width: 300px;
+  padding: 10px 14px;
+  border: 1px solid var(--border-color);
+  border-radius: 4px;
+  background: var(--card-background);
+  box-shadow: 0 4px 18px rgb(23 40 56 / 15%);
+  font-size: 12px;
+  line-height: 1.6;
+  white-space: pre;
+  pointer-events: none;
+}
+.tooltip strong { display: block; }
+
+/* ---------- Messages & footer ---------- */
+.error-message { padding: 14px 16px; border-radius: 6px; background: #fff0f0; color: #9d2424; }
+
+footer { padding: 0 4px; font-size: 12px; line-height: 1.6; color: var(--muted-text-color); }
+a { color: #405c7c; }
+
+/* ---------- Small screens ---------- */
+@media (max-width: 650px) {
+  main { padding: 24px 12px; }
+  h1 { font-size: 26px; }
+  .chart-card { padding: 16px 10px; }
+  .chart-heading { flex-direction: column; align-items: flex-start; }
+}

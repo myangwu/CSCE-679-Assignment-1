@@ -1,0 +1,81 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="description" content="Monthly and daily temperature heatmaps for Hong Kong, 1997–2017.">
+  <title>Hong Kong Temperature Heatmaps · CSCE 679</title>
+  <link rel="icon" href="data:,">
+  <link rel="stylesheet" href="styles.css">
+  <script type="module" src="src/main.js"></script>
+</head>
+<body>
+  <main>
+    <!-- Page title -->
+    <header>
+      <p class="eyebrow">CSCE 679 · Data Visualization · Assignment 1</p>
+      <h1>Hong Kong Temperature, 1997–2017</h1>
+      <p class="intro">
+        Each cell is one month of one year. Color shows that month's extreme
+        temperature; hover over a cell to see the exact values.
+      </p>
+    </header>
+
+    <!-- Controls shared by both charts -->
+    <div class="toolbar">
+      <fieldset>
+        <legend>Color cells by</legend>
+        <label><input type="radio" name="metric" value="maximum"> Maximum temperature</label>
+        <label><input type="radio" name="metric" value="minimum"> Minimum temperature</label>
+      </fieldset>
+      <p id="data-summary" class="data-summary" role="status">Loading temperature records…</p>
+    </div>
+
+    <p id="error-message" class="error-message" role="alert" hidden></p>
+
+    <!-- Level 1: monthly heatmap for every year -->
+    <section class="chart-card" aria-labelledby="monthly-title">
+      <div class="chart-heading">
+        <div>
+          <p class="eyebrow">Level 1</p>
+          <h2 id="monthly-title">Monthly Temperature Heatmap</h2>
+        </div>
+      </div>
+      <p id="monthly-description" class="chart-description"></p>
+      <div class="chart-scroll">
+        <div id="monthly-chart"></div>
+      </div>
+    </section>
+
+    <!-- Level 2: same heatmap for recent years, with daily lines in each cell -->
+    <section class="chart-card" aria-labelledby="daily-title">
+      <div class="chart-heading">
+        <div>
+          <p class="eyebrow">Level 2</p>
+          <h2 id="daily-title">Daily Temperature Within Each Month</h2>
+        </div>
+        <label class="select-control">
+          Show
+          <select id="recent-years"></select>
+        </label>
+      </div>
+      <p class="chart-description">
+        Inside each cell, the <span class="key-max">green line</span> is the daily maximum and the
+        <span class="key-min">light-blue line</span> is the daily minimum
+        (x = day of month, y = 0–40 °C). Move the mouse across a cell to read individual days.
+      </p>
+      <div class="chart-scroll">
+        <div id="daily-chart"></div>
+      </div>
+    </section>
+
+    <footer>
+      Data: <a href="temperature_daily.csv">temperature_daily.csv</a> (Hong Kong daily max/min temperature).
+      Monthly values are extremes, not averages. Empty cells (Nov–Dec 2017) have no data.
+    </footer>
+  </main>
+
+  <!-- Floating tooltip, filled in by src/tooltip.js -->
+  <div id="tooltip" class="tooltip" role="tooltip" hidden></div>
+</body>
+</html>
