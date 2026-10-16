@@ -1,66 +1,30 @@
-/**
- * data.js — turns the raw CSV text into the monthly summaries both charts use.
- *
- * Dates are kept as "YYYY-MM-DD" strings (never JavaScript Date objects in
- * local time) so that no record can shift to a neighbouring day because of
- * the viewer's timezone.
- */
+// Load the CSV and group days into monthly summaries.
+// Dates stay as "YYYY-MM-DD" strings to avoid timezone shifts.
 import { CSV_HEADER } from './config.js';
 
-/**
- * @typedef {Object} DailyRecord
- * @property {string} date     Calendar date, "YYYY-MM-DD".
- * @property {number} year
- * @property {number} month    1–12.
- * @property {number} day      1–31.
- * @property {number} maximum  Highest temperature of the day (°C).
- * @property {number} minimum  Lowest temperature of the day (°C).
- */
-
-/**
- * @typedef {Object} MonthSummary
- * @property {string} key           "YYYY-MM", used to look the month up.
- * @property {number} year
- * @property {number} month         1–12.
- * @property {number} maximum       Highest daily maximum in the month (°C).
- * @property {number} minimum       Lowest daily minimum in the month (°C).
- * @property {DailyRecord[]} days   Recorded days, sorted by day of month.
- * @property {number} daysInMonth   Calendar length (28–31).
- * @property {boolean} isComplete   True when every calendar day has a record.
- */
-
-/** Builds the "YYYY-MM" key that identifies one month of one year. */
+/** "YYYY-MM" key for one month. */
 export function toMonthKey(year, month) {
   return `${year}-${String(month).padStart(2, '0')}`;
 }
 
-/** Number of calendar days in a month (handles leap years). */
+/** Days in a month, leap years included. */
 export function getDaysInMonth(year, month) {
-  // Day 0 of the *next* month is the last day of this month.
   return new Date(Date.UTC(year, month, 0)).getUTCDate();
 }
 
-/** True when the text is a real calendar date written as "YYYY-MM-DD". */
+/** True for a real date like "2000-02-29" (rejects "2000-02-30"). */
 function isValidDateString(text) {
   if (!/^\d{4}-\d{2}-\d{2}$/.test(text)) return false;
   const parsed = new Date(`${text}T00:00:00Z`);
-  // Rejects impossible dates such as 2000-02-30, which Date would roll over.
   return Number.isFinite(parsed.getTime()) && parsed.toISOString().startsWith(text);
 }
 
-/** Converts a CSV cell to a number, returning NaN for blank cells. */
+/** CSV cell → number; blank → NaN. */
 function parseTemperature(text) {
   return text === undefined || text.trim() === '' ? NaN : Number(text);
 }
 
-/**
- * Parses and validates the daily temperature CSV.
- * Throws a descriptive error on the first malformed or duplicate row, so bad
- * data is never silently drawn.
- *
- * @param {string} csvText  Full contents of temperature_daily.csv.
- * @returns {DailyRecord[]} Records sorted from oldest to newest.
- */
+/** Parse the CSV into sorted daily records. Throws on bad rows. */
 export function parseTemperatureCsv(csvText) {
   const [header, ...rows] = csvText.trim().replace(/\r/g, '').split('\n');
   if (header !== CSV_HEADER) {
@@ -98,12 +62,8 @@ export function parseTemperatureCsv(csvText) {
 }
 
 /**
- * Groups daily records by month and computes each month's extremes.
- * Monthly maximum = max of daily highs; monthly minimum = min of daily lows
- * (these are extremes, not averages — matching the reference tooltip).
- *
- * @param {DailyRecord[]} records
- * @returns {Map<string, MonthSummary>} Keyed by "YYYY-MM".
+ * Group records by month. Max = highest daily max, min = lowest daily min.
+ * Returns Map<"YYYY-MM", { key, year, month, maximum, minimum, days, daysInMonth, isComplete }>.
  */
 export function summarizeByMonth(records) {
   const summaries = new Map();
@@ -135,11 +95,7 @@ export function summarizeByMonth(records) {
   return summaries;
 }
 
-/**
- * Lists every year covered by the records, oldest first.
- * @param {DailyRecord[]} records  Sorted records (see parseTemperatureCsv).
- * @returns {number[]}
- */
+/** All years in the data, oldest first. */
 export function getYearRange(records) {
   const firstYear = records[0].year;
   const lastYear = records.at(-1).year;

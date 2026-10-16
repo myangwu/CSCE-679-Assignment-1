@@ -1,7 +1,4 @@
-/**
- * main.js — entry point. Loads the data, wires up the page controls, and
- * redraws both charts whenever a control changes.
- */
+// Entry point: load data, connect controls, draw both charts.
 import {
   DATA_URL, METRICS, DEFAULT_METRIC, RECENT_YEAR_OPTIONS, DEFAULT_RECENT_YEARS,
 } from './config.js';
@@ -9,7 +6,6 @@ import { parseTemperatureCsv, summarizeByMonth, getYearRange } from './data.js';
 import { renderHeatmap } from './heatmap.js';
 import { createTooltip } from './tooltip.js';
 
-/** Page elements used by the app, looked up once. */
 const elements = {
   metricInputs: document.querySelectorAll('input[name="metric"]'),
   recentYearsSelect: document.querySelector('#recent-years'),
@@ -22,17 +18,16 @@ const elements = {
 
 const tooltip = createTooltip(document.querySelector('#tooltip'));
 
-/** Current user selections. Changing them and calling renderCharts() updates the page. */
+// Current user selections.
 const state = {
   metric: DEFAULT_METRIC,
   recentYears: DEFAULT_RECENT_YEARS,
 };
 
-/** Data prepared once at start-up. */
 let monthSummaries;
 let allYears;
 
-/** Redraws Level 1 (all years) and Level 2 (recent years only). */
+/** Redraw Level 1 (all years) and Level 2 (recent years). */
 function renderCharts() {
   tooltip.hide();
   elements.monthlyDescription.textContent =
@@ -55,7 +50,7 @@ function renderCharts() {
   });
 }
 
-/** Fills the "recent years" dropdown from the config and listens for changes. */
+/** Fill the "recent years" dropdown and handle changes. */
 function setUpRecentYearsControl() {
   const options = RECENT_YEAR_OPTIONS.map(count => {
     const option = new Option(`Last ${count} years`, count);
@@ -69,7 +64,7 @@ function setUpRecentYearsControl() {
   });
 }
 
-/** Connects the Max/Min radio buttons to the shared color metric. */
+/** Max/Min radio buttons. */
 function setUpMetricControl() {
   for (const input of elements.metricInputs) {
     input.checked = input.value === state.metric;
@@ -80,7 +75,7 @@ function setUpMetricControl() {
   }
 }
 
-/** Shows a readable error instead of empty charts (e.g. when opened via file://). */
+/** Show an error message instead of empty charts. */
 function showLoadError(error) {
   elements.dataSummary.textContent = 'Data unavailable';
   elements.errorMessage.hidden = false;
@@ -89,7 +84,6 @@ function showLoadError(error) {
     'Serve this folder over HTTP — run "npm start" and open http://127.0.0.1:8000.';
 }
 
-/** Loads the CSV, prepares the summaries, and draws the first view. */
 async function initialize() {
   try {
     const response = await fetch(DATA_URL);

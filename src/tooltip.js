@@ -1,16 +1,9 @@
-/**
- * tooltip.js — the floating information box shown when hovering a cell.
- */
+// Hover tooltip: text content and positioning.
 import { TEMPERATURE_SCALE, TOOLTIP_OFFSET, TOOLTIP_EDGE_MARGIN } from './config.js';
 
 const UNIT = TEMPERATURE_SCALE.unit;
 
-/**
- * Builds the text lines for a month cell (Level 1, or Level 2 when the
- * pointer is not over a recorded day).
- * @param {import('./data.js').MonthSummary} summary
- * @returns {{ title: string, lines: string[] }}
- */
+/** Tooltip text for a month. */
 export function describeMonth(summary) {
   const lines = [`Max: ${summary.maximum} ${UNIT}   Min: ${summary.minimum} ${UNIT}`];
   if (!summary.isComplete) {
@@ -19,12 +12,7 @@ export function describeMonth(summary) {
   return { title: `Date: ${summary.key}`, lines };
 }
 
-/**
- * Builds the text lines for one day inside a Level 2 cell. The month's
- * extremes are repeated so the reader can compare the day with its month.
- * @param {import('./data.js').MonthSummary} summary
- * @param {import('./data.js').DailyRecord} dayRecord
- */
+/** Tooltip text for one day, with its month for comparison. */
 export function describeDay(summary, dayRecord) {
   return {
     title: `Date: ${dayRecord.date}`,
@@ -35,12 +23,9 @@ export function describeDay(summary, dayRecord) {
   };
 }
 
-/**
- * Wraps the #tooltip element with show/hide helpers.
- * @param {HTMLElement} element  The (initially hidden) tooltip container.
- */
+/** Wrap the #tooltip element with show() / hide(). */
 export function createTooltip(element) {
-  /** Places the box next to the pointer while keeping it inside the window. */
+  // Place next to the pointer, kept inside the window.
   function moveTo(pointerX, pointerY) {
     const maxLeft = window.innerWidth - element.offsetWidth - TOOLTIP_EDGE_MARGIN;
     const maxTop = window.innerHeight - element.offsetHeight - TOOLTIP_EDGE_MARGIN;
@@ -50,7 +35,6 @@ export function createTooltip(element) {
     element.style.top = `${top}px`;
   }
 
-  /** Fills the box with a bold title plus one row per line, then shows it. */
   function show({ title, lines }, pointerX, pointerY) {
     const titleElement = document.createElement('strong');
     titleElement.textContent = title;

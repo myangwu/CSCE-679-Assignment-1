@@ -1,12 +1,5 @@
-/**
- * heatmap.js — draws the year × month matrix used by both levels.
- *
- *   Level 1 ("monthly"): each cell is filled with the month's max/min color.
- *   Level 2 ("daily"):   same cells, plus daily max/min lines inside them.
- *
- * Columns are years, rows are months. The drawing is split into small steps
- * (geometry → axes → cells → legend) so each part can be changed on its own.
- */
+// Year × month heatmap used by both levels.
+// Level 1: colored cells. Level 2: colored cells + daily lines.
 import { MONTH_NAMES, LAYOUT, DAILY_LINE_STYLE, METRICS } from './config.js';
 import { toMonthKey } from './data.js';
 import { temperatureToColor } from './scales.js';
@@ -15,17 +8,7 @@ import { buildDailyLinePath, findDayAtPosition } from './daily-lines.js';
 import { drawLegend } from './legend.js';
 import { describeMonth, describeDay } from './tooltip.js';
 
-/**
- * Renders a complete heatmap into a container, replacing any previous chart.
- *
- * @param {HTMLElement} container
- * @param {Object} options
- * @param {Map<string, import('./data.js').MonthSummary>} options.summaries
- * @param {number[]} options.years       Years to show, one column each.
- * @param {'maximum'|'minimum'} options.metric  Value that sets cell color.
- * @param {boolean} options.showDailyLines      true for Level 2.
- * @param {ReturnType<import('./tooltip.js').createTooltip>} options.tooltip
- */
+/** Draw a heatmap into the container, replacing the old one. */
 export function renderHeatmap(container, { summaries, years, metric, showDailyLines, tooltip }) {
   const geometry = computeGeometry(years, showDailyLines ? LAYOUT.daily : LAYOUT.monthly);
   const svg = createSvgElement('svg', {
@@ -41,8 +24,7 @@ export function renderHeatmap(container, { summaries, years, metric, showDailyLi
   MONTH_NAMES.forEach((_, rowIndex) => {
     years.forEach((year, columnIndex) => {
       const summary = summaries.get(toMonthKey(year, rowIndex + 1));
-      // Months without any records (Nov/Dec 2017) are left blank, as in the reference.
-      if (!summary) return;
+      if (!summary) return; // no data: leave blank, as in the reference
       const cell = drawCell(summary, metric, showDailyLines, geometry, { rowIndex, columnIndex });
       attachCellInteractions(cell, summary, showDailyLines, geometry, tooltip);
       svg.append(cell);
@@ -59,14 +41,9 @@ export function renderHeatmap(container, { summaries, years, metric, showDailyLi
   container.replaceChildren(svg);
 }
 
-/* ------------------------------------------------------------------ */
-/* Geometry                                                            */
-/* ------------------------------------------------------------------ */
+// ---------- Geometry ----------
 
-/**
- * Works out where everything goes: plot edges, column/row sizes, cell size.
- * All later drawing steps read positions from this one object.
- */
+/** Plot edges and cell sizes. */
 function computeGeometry(years, chartLayout) {
   const { margin } = LAYOUT;
   const { width, rowHeight, cellGapX, cellGapY } = chartLayout;
@@ -88,7 +65,7 @@ function computeGeometry(years, chartLayout) {
   };
 }
 
-/** Top-left corner of the cell in a given row and column. */
+/** Top-left corner of a cell. */
 function cellPosition(geometry, rowIndex, columnIndex) {
   return {
     x: geometry.plotLeft + columnIndex * geometry.columnWidth + geometry.cellGapX / 2,
@@ -96,25 +73,21 @@ function cellPosition(geometry, rowIndex, columnIndex) {
   };
 }
 
-/* ------------------------------------------------------------------ */
-/* Axes                                                                */
-/* ------------------------------------------------------------------ */
+// ---------- Axes ----------
 
-/** Draws the year axis along the top and the month axis down the left side. */
+/** Year axis on top, month axis on the left. */
 function drawAxes(svg, years, geometry) {
   const { plotLeft, plotTop, plotRight, plotBottom, columnWidth, rowHeight, cellHeight } = geometry;
   const { axisLabelOffset, axisTickLength } = LAYOUT;
-  const axisY = plotTop - axisLabelOffset / 2; // small gap between axis line and cells
+  const axisY = plotTop - axisLabelOffset / 2;
   const axisX = plotLeft - axisLabelOffset / 2;
   const axes = createSvgElement('g', { class: 'axes' });
 
-  // Axis lines: one along the top, one down the left side.
   axes.append(createSvgElement('path', {
     class: 'axis-line',
     d: `M${axisX},${plotBottom} V${axisY} H${plotRight}`,
   }));
 
-  // Year ticks and labels, centered over each column.
   years.forEach((year, columnIndex) => {
     const x = plotLeft + (columnIndex + 0.5) * columnWidth;
     axes.append(
@@ -125,7 +98,6 @@ function drawAxes(svg, years, geometry) {
     );
   });
 
-  // Month ticks and labels, centered beside each row of cells.
   MONTH_NAMES.forEach((monthName, rowIndex) => {
     const y = plotTop + rowIndex * rowHeight + cellHeight / 2;
     axes.append(
@@ -140,15 +112,9 @@ function drawAxes(svg, years, geometry) {
   svg.append(axes);
 }
 
-/* ------------------------------------------------------------------ */
-/* Cells                                                               */
-/* ------------------------------------------------------------------ */
+// ---------- Cells ----------
 
-/**
- * Creates one month cell: a colored rectangle, plus the daily max/min
- * lines when showDailyLines is true.
- * @returns {SVGGElement}
- */
+/** One month cell: colored rect, plus daily lines in Level 2. */
 function drawCell(summary, metric, showDailyLines, geometry, { rowIndex, columnIndex }) {
   const { cellWidth, cellHeight } = geometry;
   const { x, y } = cellPosition(geometry, rowIndex, columnIndex);
@@ -178,16 +144,9 @@ function drawCell(summary, metric, showDailyLines, geometry, { rowIndex, columnI
   return cell;
 }
 
-/* ------------------------------------------------------------------ */
-/* Interaction                                                         */
-/* ------------------------------------------------------------------ */
+// ---------- Interaction ----------
 
-/**
- * Adds hover and keyboard behaviour to a cell.
- *  - Level 1: the tooltip shows the month and its max/min.
- *  - Level 2: the tooltip follows the pointer and shows the day under it.
- *  - Tab focuses a cell (tooltip appears); Escape or blur hides it.
- */
+/** Hover/focus shows the tooltip; Level 2 shows the day under the pointer. */
 function attachCellInteractions(cell, summary, showDailyLines, geometry, tooltip) {
   const background = cell.querySelector('.cell-background');
   const monthText = describeMonth(summary);
@@ -199,8 +158,7 @@ function attachCellInteractions(cell, summary, showDailyLines, geometry, tooltip
     let content = monthText;
     if (showDailyLines) {
       const dayRecord = findDayAtPointer(event, background, summary, geometry.cellWidth);
-      // A missing day has no value to report, so fall back to the month summary.
-      if (dayRecord) content = describeDay(summary, dayRecord);
+      if (dayRecord) content = describeDay(summary, dayRecord); // missing day → month text
     }
     tooltip.show(content, event.clientX, event.clientY);
   });
@@ -217,9 +175,8 @@ function attachCellInteractions(cell, summary, showDailyLines, geometry, tooltip
   });
 }
 
-/** Converts the pointer's screen position into the day record beneath it. */
+/** Screen pointer → day record (the SVG is scaled, so convert to cell units). */
 function findDayAtPointer(event, background, summary, cellWidth) {
-  // The SVG is scaled to fit the page, so convert screen px → cell units.
   const bounds = background.getBoundingClientRect();
   const cellX = (event.clientX - bounds.left) / bounds.width * cellWidth;
   return findDayAtPosition(summary, cellX, cellWidth);
